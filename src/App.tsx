@@ -372,10 +372,10 @@ export default function App() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12 items-start">
           {/* Row 1 */}
           <MarketTable title="ALTIN FİYATLARI" items={processedAltin} />
-          <MarketTable title="SARRAFİYE" items={data?.sarrafiye || []} />
+          <MarketTable title="DÖVİZ KURLARI" items={data?.doviz || []} />
           
           {/* Row 2 */}
-          <MarketTable title="DÖVİZ KURLARI" items={data?.doviz || []} />
+          <MarketTable title="SARRAFİYE" items={data?.sarrafiye || []} />
           <MarketTable title="ÇAPRAZ KURLAR" items={data?.capraz || []} />
           
           {/* Row 3 */}
