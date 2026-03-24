@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "80:80"
+      - "80"
     restart: always
     environment:
       - APP_URL=${APP_URL}
