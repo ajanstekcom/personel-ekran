@@ -252,6 +252,20 @@ export default function App() {
   const [fromAsset, setFromAsset] = useState<string>('GRAM ALTIN');
   const [toAsset, setToAsset] = useState<string>('TÜRK LİRASI (TL)');
   const [transactionType, setTransactionType] = useState<'alis' | 'satis'>('satis');
+  const [logoClicks, setLogoClicks] = useState(0);
+
+  const handleLogoClick = () => {
+    setLogoClicks(prev => {
+      if (prev + 1 >= 5) {
+        // Simple hidden admin redirect or alert
+        window.location.href = '/admin'; // or any admin path
+        return 0;
+      }
+      return prev + 1;
+    });
+    // Reset click counter after 2 seconds of inactivity
+    setTimeout(() => setLogoClicks(0), 2000);
+  };
 
   const fetchData = async () => {
     try {
@@ -282,7 +296,41 @@ export default function App() {
   }, []);
 
   const processedAltin = useMemo(() => {
-    return data?.altin || [];
+    if (!data) return [];
+    
+    // Custom order: ONS, USD/KG, EUR/KG, HAS ALTIN, GRAM ALTIN
+    const customOrder = ["ONS", "USD/KG", "EUR/KG", "HAS ALTIN", "GRAM ALTIN"];
+    
+    const sorted = [...data.altin].sort((a, b) => {
+      const indexA = customOrder.indexOf(a.urun);
+      const indexB = customOrder.indexOf(b.urun);
+      
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return 0;
+    });
+
+    return sorted;
+  }, [data]);
+
+  const processedDoviz = useMemo(() => {
+    if (!data) return [];
+    
+    const eurUsd = data.capraz.find(i => i.urun === "EUR/USD");
+    const dovizItems = [...data.doviz];
+    
+    if (eurUsd) {
+      // Add EUR/USD after EUR/TL (second item usually)
+      const eurTlIndex = dovizItems.findIndex(i => i.urun === "EUR/TL");
+      if (eurTlIndex !== -1) {
+        dovizItems.splice(eurTlIndex + 1, 0, { ...eurUsd, type: 'doviz' });
+      } else {
+        dovizItems.unshift({ ...eurUsd, type: 'doviz' });
+      }
+    }
+    
+    return dovizItems;
   }, [data]);
 
   const allAssets = useMemo(() => {
@@ -297,8 +345,8 @@ export default function App() {
       genel_trend: 'neutral',
       type: 'currency'
     };
-    return [tlItem, ...processedAltin, ...data.sarrafiye, ...data.doviz];
-  }, [data, processedAltin]);
+    return [tlItem, ...processedAltin, ...data.sarrafiye, ...processedDoviz];
+  }, [data, processedAltin, processedDoviz]);
 
   const convertedValue = useMemo(() => {
     if (!data || allAssets.length === 0) return 0;
@@ -331,7 +379,7 @@ export default function App() {
       <nav className="bg-[#0b0f19] border-b border-slate-800/40 px-2 md:px-8 py-3 md:py-6 sticky top-0 z-50 backdrop-blur-xl bg-opacity-95">
         <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
           <div className="hidden md:block w-32" /> {/* Spacer for balance */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer select-none" onClick={handleLogoClick}>
             <img src={LOGO_URL} alt="Topaloğlu Altın" className="h-8 md:h-16" referrerPolicy="no-referrer" />
           </div>
           <div className="flex items-center gap-3 md:gap-6">
@@ -356,7 +404,7 @@ export default function App() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-12 items-start">
           {/* Row 1 */}
           <MarketTable title="ALTIN FİYATLARI" items={processedAltin} />
-          <MarketTable title="DÖVİZ KURLARI" items={data?.doviz || []} />
+          <MarketTable title="DÖVİZ KURLARI" items={processedDoviz} />
           
           {/* Row 2 */}
           <MarketTable title="SARRAFİYE" items={data?.sarrafiye || []} />
