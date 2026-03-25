@@ -282,29 +282,7 @@ export default function App() {
   }, []);
 
   const processedAltin = useMemo(() => {
-    if (!data) return [];
-    const hasAltin = data.altin.find(i => i.urun === 'HAS ALTIN');
-    if (!hasAltin) return data.altin;
-    
-    const hasAlis = parseTurkishNumber(hasAltin.alis);
-    const hasSatis = parseTurkishNumber(hasAltin.satis);
-    
-    // Alış: 995 milyem, Satış: 1002 milyem
-    const gramAlis = hasAlis * 0.995;
-    const gramSatis = hasSatis * 1.002;
-    
-    const customGram: MarketItem = {
-      urun: "GRAM ALTIN",
-      alis: formatTurkishNumber(gramAlis, 2),
-      satis: formatTurkishNumber(gramSatis, 2),
-      fark: hasAltin.fark,
-      alis_trend: hasAltin.alis_trend,
-      satis_trend: hasAltin.satis_trend,
-      genel_trend: hasAltin.genel_trend,
-      type: "altin"
-    };
-    
-    return [customGram, ...data.altin.filter(i => i.urun !== 'GRAM ALTIN' && i.urun !== 'GRAM ALTIN (995/1002)')];
+    return data?.altin || [];
   }, [data]);
 
   const allAssets = useMemo(() => {
