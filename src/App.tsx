@@ -255,7 +255,13 @@ export default function App() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch(API_URL);
+      // Adding timestamp to bypass potential CDN/Server caching
+      const response = await fetch(`${API_URL}?t=${Date.now()}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       if (!response.ok) throw new Error('API hatası');
       const json = await response.json();
       setData(json);
